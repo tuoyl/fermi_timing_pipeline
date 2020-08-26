@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import yaml
 import numpy as np
 import numba 
@@ -33,6 +34,67 @@ def download_data(yamlfile):
                 out=scfile)
     else:
         print("Checking file --> %s exists"%(scfile))
+
+def transfer_hms2degree(ra_time, dec_time):
+
+    ra0 = np.floor(ra_time/3600)
+    ra1 = np.floor((ra_time-ra0*3600)/60)
+    ra2 = ra_time-ra0*3600-ra1*60
+    dec0 = np.floor(dec_time/3600)
+    dec1 = np.floor((dec_time-dec0*3600)/60)
+    dec2 = dec_time-dec0*3600-dec1*60
+
+    ra = ra0*15.0 + (ra1*15.0)/60.0 + (ra2*15)/3600.0
+    if dec0 <= 0:
+        dec = dec0 - dec1/60.0 - dec2/3600.0
+    else:
+        dec = dec0 + dec1/60.0 + dec2/3600.0
+    
+    return ra, dec
+
+def fermi_gtanalyse(yamlfile):
+    par = get_parlist(yamlfile)
+    evfile   = par['data']['evfile']
+    scfile   = par['data']['scfile']
+    gtselect = par['data']['gtselect']
+    gtbary   = par['data']['gtbary']
+
+    emin     = par['selection']['emin']
+    emax     = par['selection']['emax']
+    zmax     = par['selection']['zmax']
+    rad      = par['selection']['rad']
+    evclass  = par['selection']['evclass']
+    if not par['selection']['evtype']:
+        evtype = "INDEF"
+    else:
+        evtype = par['selection']['evtype']
+
+    # get tmin and tmax
+    hdulist = fits.open(evfile)
+    time = hdulist[1].data.field("Time")
+    if not par['selection']['tmin']:
+        tmin = np.min(time) + 100 # Trim off 100 seconds before and after from the data.
+    else:
+        tmin = par['selection']['tmin']
+
+    if not par['selection']['tmax']:
+        tmax = np.max(time) - 100 # Trim off 100 seconds before and after from the data.
+    else:
+        tmax = par['selection']['tmin']
+
+    ra = par['parameters']['RAJ']
+    dec= par['parameters']['DECJ']
+    ra, dec = transfer_hms2degree(ra, dec)
+
+    command_gtselect = "gtselect infile={} outfile={} ra={} dec={} rad={} tmin={} tmax={} emin={} emax={} zmax={}".format(
+            evfile, gtselect, str(ra), str(dec), str(rad), str(tmin), str(tmax), str(emin), str(emax), str(zmax))
+    print("Executing --> {}".format(command_gtselect))
+    os.system(command_gtselect)
+
+    command_gtbary = "gtbary evfile={} scfile={} outfile={} ra={} dec={}".format(
+            gtselect, scfile, gtbary, ra, dec)
+    print("Executing --> {}".format(command_gtbary))
+    os.system(command_gtbary)
 
 def get_parlist(yamlfile):
     with open(yamlfile)as fin:
@@ -183,47 +245,5 @@ def fsearch(yamlfile, **kwargs):
 if __name__ == "__main__" :
     yamlfile = "config_timing.yaml"
     download_data(yamlfile)
-#    fsearch(yamlfile, figure=True)
-
-#    parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
-#            description='Example: python he_pipeline.py -i hxmt_filename -p outprofile.dat -c outchisquare.dat')
-#    parser.add_argument("-i","--input",help="input filename of HXMT screen file")
-#    parser.add_argument("-p","--profile",help="out profile name")
-#    parser.add_argument("-c","--chisquare",help="chisquare distribution file",type=str)
-#    parser.add_argument("-f0","--freqency", help="f0 for searching frequency", type=float)
-#    parser.add_argument("-f1","--freqderive", help="f1 for searching frequency", type=float)
-#    parser.add_argument("-f1step",help="frequency derivative intervals for frequency search", type=float)
-#    parser.add_argument("-f1range", help="frequency derivative range for searching", type=float)
-#    parser.add_argument("-f2","--freqsecderive", help="f2 for searching frequency", type=float)
-#    parser.add_argument("-f3","--freqthirdderive", help="f3 for searching frequency", type=float)
-#    parser.add_argument("-fstep",help="frequency intervals for frequency search", type=float)
-#    parser.add_argument("-frange", help="frequency range for searching", type=float)
-#    parser.add_argument("-epoch", help="epoch time for fsearch (MJD)", type=float)
-#    parser.add_argument("-bins", help="profile bin numbers", type=int)
-#    args = parser.parse_args()
-#    filename = args.input
-#    outprofile = args.profile
-#    outchisq   = args.chisquare
-#    f0 = args.freqency
-#    fstep = args.fstep
-#    frange = args.frange
-#    epoch  = args.epoch
-#    binprofile = args.bins
-#    if args.freqderive:
-#        freqderive = args.freqderive
-#    else:freqderive = 0
-#    if args.freqsecderive:
-#        freqsecderive = args.freqsecderive
-#    else:freqsecderive = 0
-#    if args.freqthirdderive:
-#        freqthirdderive = args.freqthirdderive
-#    else:freqthirdderive = 0
-#
-#    if args.f1range:
-#        print("DO THIS")
-#        f1range = args.f1range
-#        f1step  = args.f1step
-#        fsearch(filename, outprofile, outchisq, f0, fstep, frange, epoch, binprofile, f1=freqderive, f2=freqsecderive, f3=freqthirdderive, f1step=f1step, f1range=f1range)
-#    else:
-#        fsearch(filename, outprofile, outchisq, f0, fstep, frange, epoch, binprofile, f1=freqderive, f2=freqsecderive, f3=freqthirdderive)
-
+    fermi_gtanalyse(yamlfile)
+    fsearch(yamlfile, figure=True)

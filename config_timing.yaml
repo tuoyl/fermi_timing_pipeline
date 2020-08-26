@@ -1,17 +1,19 @@
 data:
-  evfile : "data/lat_photon_weekly_w637_p305_v001.fits"
-  scfile : "data/lat_spacecraft_weekly_w637_p202_v001.fits"
-  gtbary : "data/weekly_w637_p305_v001_gtbary.fits"
+  evfile   : "data/lat_photon_weekly_w637_p305_v001.fits"
+  scfile   : "data/lat_spacecraft_weekly_w637_p202_v001.fits"
+  gtselect : "data/weekly_w637_p305_v001_gtselect.fits"
+  gtbary   : "data/weekly_w637_p305_v001_gtbary.fits"
 
 selection :
-  emin : 100
-  emax : 316227.76
-  zmax    : 90
-  evclass : 128
-  evtype  : 3
-  tmin    : 620003170
-  tmax    : 620103170
-  filter  : null
+  emin     : 100
+  emax     : 316227.76
+  zmax     : 90
+  evclass  : 128
+  evtype   : 3
+  tmin     : null
+  tmax     : null
+  rad      : 5
+  filter   : null
 
 parameters:
   PEPOCH :    48442.5
