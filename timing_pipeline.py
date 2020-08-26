@@ -113,11 +113,10 @@ def fsearch(yamlfile, **kwargs):
     ---------------
 
     chi_square : array-like
-        The 
+        The Chi Square distribution of Epoch folding 
 
-
-
-
+    fbest : float
+        The most significant frequency
     """
     
     par = get_parlist(yamlfile)
