@@ -3,13 +3,36 @@ import numpy as np
 import numba 
 from astropy.io import fits
 import matplotlib.pyplot as plt
+import wget
+import os
 
-def download_data():
+def download_data(yamlfile):
     """
-    download weekly Photon files and Spacecraft files 
+    download weekly Photon files and Spacecraft files (if not exists)
 
     """
-    pass
+    par = get_parlist(yamlfile)
+    evfile = par['data']['evfile']
+    scfile = par['data']['scfile']
+    evfile_filename = os.path.basename(evfile)
+    scfile_filename = os.path.basename(scfile)
+    evfile_dir = os.path.dirname(evfile)
+    scfile_dir = os.path.dirname(scfile)
+
+    if os.path.exists(evfile) & os.path.exists(scfile):
+        return
+    if not os.path.exists(evfile):
+        print("Checking file --> %s not exists"%(evfile))
+        print("Retrieving file --> %s"%(evfile))
+        wget.download('https://heasarc.gsfc.nasa.gov/FTP/fermi/data/lat/weekly/photon/%s'%(evfile_filename),
+                out=evfile)
+    else:
+        print("Checking file --> %s exists"%(evfile))
+    if not os.path.exists(scfile):
+        wget.download('https://heasarc.gsfc.nasa.gov/FTP/fermi/data/lat/weekly/spacecraft/%s'%(scfile_filename),
+                out=scfile)
+    else:
+        print("Checking file --> %s exists"%(scfile))
 
 def get_parlist(yamlfile):
     with open(yamlfile)as fin:
@@ -147,19 +170,22 @@ def fsearch(yamlfile, **kwargs):
     counts, phase  = numba_histogram(phi, bin_profile)
     phase = phase[:-1]
 
-    if "figure" in kwargs:
-        plt.figure("chisquare")
-        plt.plot(f, chi_square)
-        plt.figure("profile")
-        plt.plot(phase, counts)
-        plt.show()
+    if ("figure" in kwargs):
+        if kwargs["figure"]:
+            plt.figure("chisquare")
+            plt.plot(f, chi_square)
+            plt.figure("profile")
+            plt.plot(phase, counts)
+            plt.show()
         
     
 
 
 if __name__ == "__main__" :
     yamlfile = "config_timing.yaml"
-    fsearch(yamlfile)
+    download_data(yamlfile)
+#    fsearch(yamlfile, figure=True)
+
 #    parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
 #            description='Example: python he_pipeline.py -i hxmt_filename -p outprofile.dat -c outchisquare.dat')
 #    parser.add_argument("-i","--input",help="input filename of HXMT screen file")

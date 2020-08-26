@@ -1,6 +1,6 @@
 data:
-  evfile : L200826021244F357373F30_PH00.fits
-  scfile : ft2.fits
+  evfile : "data/lat_photon_weekly_w637_p305_v001.fits"
+  scfile : "data/lat_spacecraft_weekly_w637_p202_v001.fits"
   gtbary : "data/weekly_w637_p305_v001_gtbary.fits"
 
 selection :
