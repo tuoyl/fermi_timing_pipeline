@@ -1,0 +1,28 @@
+data:
+  evfile : L200826021244F357373F30_PH00.fits
+  scfile : ft2.fits
+  gtbary : "data/weekly_w637_p305_v001_gtbary.fits"
+
+selection :
+  emin : 100
+  emax : 316227.76
+  zmax    : 90
+  evclass : 128
+  evtype  : 3
+  tmin    : 620003170
+  tmax    : 620103170
+  filter  : null
+
+parameters:
+  PEPOCH :    48442.5
+  F0     :    29.946923       
+  F1     :    -3.77535E-10
+  F2     :    1.1147E-20
+  F3     :    -2.73E-30
+  FRANGE :    1.0e-3
+  FSTEP  :    1.0e-8
+  PSRJ   :    J0534+2200
+  PSRB   :    B0531+21
+  NAME   :    B0531+21
+  RAJ    :    05:34:31.973
+  DECJ   :    +22:00:52.06
