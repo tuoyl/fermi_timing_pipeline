@@ -7,6 +7,10 @@ import matplotlib.pyplot as plt
 import wget
 import os
 
+# declare global variables
+MJDREFF = 0.00074287037037037
+MJDREFI = 51910
+
 def download_data(yamlfile):
     """
     download weekly Photon files and Spacecraft files (if not exists)
@@ -160,6 +164,13 @@ def numba_histogram(a, bins):
 
     return hist, bin_edges
 
+def cal_toa(fbest, profile, data):
+    delta_phi = np.argmax(profile)
+    toa = (1/fbest)*delta_phi + np.min(data)
+    toa = (toa / 86400.0) + MJDREFI + MJDREFF
+    #TODO:ToA error
+    return toa
+
 
 
 def fsearch(yamlfile, **kwargs):
@@ -230,6 +241,9 @@ def fsearch(yamlfile, **kwargs):
     phi = phi - np.floor(phi)
     counts, phase  = numba_histogram(phi, bin_profile)
     phase = phase[:-1]
+
+    toa = cal_toa(fbest, counts, data)
+    print("ToA --> {}".format(toa))
 
     if ("figure" in kwargs):
         if kwargs["figure"]:
