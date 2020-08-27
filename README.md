@@ -59,4 +59,8 @@ Executing --> gtselect infile=data/lat_photon_weekly_w637_p305_v001.fits outfile
 Executing --> gtbary evfile=data/weekly_w637_p305_v001_gtselect.fits scfile=data/lat_spacecraft_weekly_w637_p202_v001.fits outfile=data/weekly_w637_p305_v001_gtbary.fits ra=83.63322083333333 dec=22.01446111111111
 Fsearch --> data/weekly_w637_p305_v001_gtbary.fits
 ```
+## fsearch results:
+![Profile](data/profile.png)
+![Chi-Square](data/chisquare.png)
+
 
