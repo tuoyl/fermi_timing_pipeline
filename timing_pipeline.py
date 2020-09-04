@@ -94,12 +94,26 @@ def fermi_gtanalyse(yamlfile):
     command_gtselect = "gtselect infile={} outfile={} ra={} dec={} rad={} tmin={} tmax={} emin={} emax={} zmax={}".format(
             evfile, gtselect, str(ra), str(dec), str(rad), str(tmin), str(tmax), str(emin), str(emax), str(zmax))
     print("Executing --> {}".format(command_gtselect))
-    os.system(command_gtselect)
+    #os.system(command_gtselect)
+    write_script_to_scriptfile(yamlfile, command_gtselect)
 
     command_gtbary = "gtbary evfile={} scfile={} outfile={} ra={} dec={}".format(
             gtselect, scfile, gtbary, ra, dec)
     print("Executing --> {}".format(command_gtbary))
-    os.system(command_gtbary)
+    #os.system(command_gtbary)
+    write_script_to_scriptfile(yamlfile, command_gtselect)
+
+def write_script_to_scriptfile(yamlfile, command):
+    parlist = get_parlist(yamlfile)
+    with open(parlist['data']['scriptfile'], 'a') as fout:
+        if isinstance(command, str):
+            fout.write("%s \n"%command)
+        else:
+            for line in command:
+                fout.write("%s \n"%line)
+
+
+
 
 def get_parlist(yamlfile):
     with open(yamlfile)as fin:
