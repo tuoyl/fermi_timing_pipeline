@@ -6,6 +6,7 @@ from astropy.io import fits
 import matplotlib.pyplot as plt
 import wget
 import os
+import argparse
 
 # declare global variables
 MJDREFF = 0.00074287037037037
@@ -109,12 +110,11 @@ def get_parlist(yamlfile):
 @numba.njit
 def cal_chisquare(data, f, pepoch, bin_profile, F1, F2, F3, F4):
     chi_square = np.zeros(len(f), dtype=np.float64)
-    #chi_square = np.zeros(len(f))
-    #chi_square = numba.float64(chi_square)
+    t0 = np.min(data)
 
     for i in range(len(f)):
-        phi = (data-pepoch)*f[i] + (1.0/2.0)*((data-pepoch)**2)*F1 + (1.0/6.0)*((data-pepoch)**3)*F2 +\
-                (1.0/24.0)*((data-pepoch)**4)*F3 + (1.0/120.0)*((data-pepoch)**5)*F4
+        phi = (data-t0)*f[i] + (1.0/2.0)*((data-t0)**2)*F1 + (1.0/6.0)*((data-t0)**3)*F2 +\
+                (1.0/24.0)*((data-t0)**4)*F3 + (1.0/120.0)*((data-t0)**5)*F4
         phi = phi - np.floor(phi)
         counts  = numba_histogram(phi, bin_profile)[0]
         chi_square[i] = np.sum( (counts - np.mean(counts))**2 / np.mean(counts) )
@@ -225,10 +225,18 @@ def fsearch(yamlfile, **kwargs):
 
 
     data = time
+    dt = np.min(data) - pepoch
+    F0 = F0 + F1*dt + (1/2)*F2*(dt**2) + (1/6)*F3*(dt**3) + (1/24)*F4*(dt**4)
+    F1 = F1 + F2*dt + (1/2)*F3*(dt**2) + (1/6)*F4*(dt**3)
+    F2 = F2 + F3*dt + (1/2)*F4*(dt**2)
+    F3 = F3 + F4*dt
     if len(data)==0:
         raise IOError("Error: Data is empty")
     t0 = np.min(data)
-    bin_profile = 20
+    if 'BIN' in par['parameters']:
+        bin_profile = par['parameters']['BIN']
+    else:
+        bin_profile = 20
 
     f = np.arange(F0-frange,F0+frange,fstep)
     data = numba.float64(data)
@@ -236,13 +244,16 @@ def fsearch(yamlfile, **kwargs):
     chi_square = cal_chisquare(data, f, pepoch, bin_profile, F1, F2, F3, F4)
     fbest = f[np.argmax(chi_square)]
 
-    phi = (data-pepoch)*fbest + (1.0/2.0)*((data-pepoch)**2)*F1 + (1.0/6.0)*((data-pepoch)**3)*F2 +\
-            (1.0/24.0)*((data-pepoch)**4)*F3 + (1.0/120.0)*((data-pepoch)**5)*F4
+    phi = (data-t0)*fbest + (1.0/2.0)*((data-t0)**2)*F1 + (1.0/6.0)*((data-t0)**3)*F2 +\
+            (1.0/24.0)*((data-t0)**4)*F3 + (1.0/120.0)*((data-t0)**5)*F4
     phi = phi - np.floor(phi)
     counts, phase  = numba_histogram(phi, bin_profile)
     phase = phase[:-1]
 
     toa = cal_toa(fbest, counts, data)
+    if 'toa' in par['data']:
+        #TODO save ToA results
+        pass
     print("ToA --> {}".format(toa))
 
     if ("figure" in kwargs):
@@ -257,7 +268,12 @@ def fsearch(yamlfile, **kwargs):
 
 
 if __name__ == "__main__" :
-    yamlfile = "config_timing.yaml"
+    #yamlfile = "config_timing.yaml"
+    parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
+            description='Example: python he_pipeline.py -i hxmt_filename -p outprofile.dat -c outchisquare.dat')
+    parser.add_argument("-c","--configure",help="name of configure file",type=str)
+    args = parser.parse_args()
+    yamlfile = args.configure
     download_data(yamlfile)
     fermi_gtanalyse(yamlfile)
     fsearch(yamlfile, figure=True)
