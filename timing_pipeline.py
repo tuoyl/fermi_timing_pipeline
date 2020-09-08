@@ -101,7 +101,7 @@ def fermi_gtanalyse(yamlfile):
             gtselect, scfile, gtbary, ra, dec)
     print("Executing --> {}".format(command_gtbary))
     #os.system(command_gtbary)
-    write_script_to_scriptfile(yamlfile, command_gtselect)
+    write_script_to_scriptfile(yamlfile, command_gtbary)
 
 def write_script_to_scriptfile(yamlfile, command):
     parlist = get_parlist(yamlfile)
@@ -179,9 +179,10 @@ def numba_histogram(a, bins):
     return hist, bin_edges
 
 def cal_toa(fbest, profile, data):
-    delta_phi = np.argmax(profile)
+    delta_phi = np.argmax(profile)/len(profile)
     toa = (1/fbest)*delta_phi + np.min(data)
     toa = (toa / 86400.0) + MJDREFI + MJDREFF
+    print("LLLLLLLLLdelta phi? ", delta_phi, 1/fbest, np.min(data))
     #TODO:ToA error
     return toa
 
@@ -255,6 +256,7 @@ def fsearch(yamlfile, **kwargs):
     f = np.arange(F0-frange,F0+frange,fstep)
     data = numba.float64(data)
     ## calculate chisquare   
+    print("LLLLLLLL", f, F1, F2, F3, F4)
     chi_square = cal_chisquare(data, f, pepoch, bin_profile, F1, F2, F3, F4)
     fbest = f[np.argmax(chi_square)]
 
@@ -268,6 +270,10 @@ def fsearch(yamlfile, **kwargs):
     if 'toa' in par['data']:
         #TODO save ToA results
         pass
+    if 'outtim' in kwargs:
+        print("saving ToA file")
+        with open(kwargs['outtim'], 'a')as fout:
+            fout.write("{}\n".format(toa))
     print("ToA --> {}".format(toa))
 
     if ("figure" in kwargs):
@@ -286,8 +292,12 @@ if __name__ == "__main__" :
     parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
             description='Example: python he_pipeline.py -i hxmt_filename -p outprofile.dat -c outchisquare.dat')
     parser.add_argument("-c","--configure",help="name of configure file",type=str)
+    parser.add_argument("-t","--timfile",help="name of output tim file",type=str)
     args = parser.parse_args()
     yamlfile = args.configure
-    download_data(yamlfile)
-    fermi_gtanalyse(yamlfile)
-    fsearch(yamlfile, figure=True)
+#    download_data(yamlfile)
+#    fermi_gtanalyse(yamlfile)
+    if args.timfile:
+        fsearch(yamlfile, figure=False, outtim=args.timfile)
+    else:
+        fsearch(yamlfile, figure=False)

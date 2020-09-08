@@ -1,8 +1,9 @@
 data:
-  evfile   : "data/lat_photon_weekly_w637_p305_v001.fits"
-  scfile   : "data/lat_spacecraft_weekly_w637_p202_v001.fits"
-  gtselect : "data/weekly_w637_p305_v001_gtselect.fits"
-  gtbary   : "data/weekly_w637_p305_v001_gtbary.fits"
+  evfile   :  "data/lat_photon_weekly_w637_p305_v001.fits"
+  scfile   :  "data/lat_spacecraft_weekly_w637_p202_v001.fits"
+  gtselect :  "data/weekly_w637_p305_v001_gtselect.fits"
+  gtbary   :  "data/weekly_w637_p305_v001_gtbary.fits"
+  scriptfile: "data/weekly_w637_p305_v001_gtanalysis.sh"
 
 selection :
   emin     : 100

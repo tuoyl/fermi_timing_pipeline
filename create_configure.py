@@ -10,7 +10,7 @@ def get_parlist(template):
 def change_configure(write_yamlfile, dictionary, week_num):
     for datakey in dictionary['data']:
         print(datakey, dictionary['data'][datakey])
-        dictionary['data'][datakey] = dictionary['data'][datakey].replace("???", str(int(week_num)))
+        dictionary['data'][datakey] = dictionary['data'][datakey].replace("???", str(week_num).zfill(3))
         print(dictionary['data'][datakey])
 
     with open(write_yamlfile, 'w') as fout:
